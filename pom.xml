@@ -55,9 +55,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.yubico</groupId>
-			<artifactId>webauthn-server-core</artifactId>
-			<version>1.12.1</version>
+			<groupId>com.webauthn4j</groupId>
+			<artifactId>webauthn4j-core</artifactId>
+			<version>0.28.4.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>com.mysql</groupId>
