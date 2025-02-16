@@ -27,7 +27,7 @@ public class RegisterController {
     }
 
     @PostMapping("/register-validate")
-    public ResponseEntity<?> registerValidate(@RequestBody RegistrationRequest registerRequest) {
+    public ResponseEntity<?> registerValidate(@RequestBody String registerRequest) {
         try {
             return registerService.registerValidate(registerRequest);
         } catch (Exception e) {

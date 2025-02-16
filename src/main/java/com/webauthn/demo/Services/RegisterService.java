@@ -8,6 +8,6 @@ import org.springframework.http.ResponseEntity;
 public interface RegisterService {
 
     ResponseEntity<PublicKeyCredentialCreationOptions> registerStart(RegisterRequest registerRequest);
-    ResponseEntity<?> registerValidate(RegistrationRequest registerRequest);
+    ResponseEntity<?> registerValidate(String registerRequest);
     ResponseEntity<?> loginVerification(RegistrationRequest registerRequest);
 }
