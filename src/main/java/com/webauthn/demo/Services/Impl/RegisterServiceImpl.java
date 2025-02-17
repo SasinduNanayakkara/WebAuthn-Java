@@ -13,15 +13,16 @@ import com.webauthn4j.data.client.challenge.Challenge;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
 import com.webauthn4j.verifier.exception.VerificationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.webauthn.demo.Dto.RegistrationRequest;
 
 import java.util.List;
 
 @Service
 public class RegisterServiceImpl implements RegisterService {
-
+    private static final Logger log = LoggerFactory.getLogger(RegisterServiceImpl.class);
     private final WebAuthnManager webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager();
 
     public ResponseEntity<PublicKeyCredentialCreationOptions> registerStart(RegisterRequest registerRequest) {
@@ -37,6 +38,7 @@ public class RegisterServiceImpl implements RegisterService {
                 60000L, // Timeout
                 List.of(), // Allowed credentials should be explicitly typed if needed
                 new AuthenticatorSelectionCriteria(AuthenticatorAttachment.PLATFORM, false, UserVerificationRequirement.PREFERRED),
+                List.of(), // Hints
                 AttestationConveyancePreference.NONE,
                 null // Extensions (pass null if unused)
         );
@@ -49,12 +51,13 @@ public class RegisterServiceImpl implements RegisterService {
         RegistrationData registrationData;
 
         try {
-            registrationData = webAuthnManager.parseRegistrationResponseJSON(registerRequest); //TODO: get the request as JSON string
+            registrationData = webAuthnManager.parseRegistrationResponseJSON(registerRequest);
         } catch (DataConversionException e) {
-            return ResponseEntity.badRequest().build();
+            log.error("Invalid request - {}", e.getMessage());
+            return ResponseEntity.status(400).body("Invalid request - " + e.getMessage());
         }
 
-        Origin origin = new Origin("http://localhost:8080"); //provide your domain name
+        Origin origin = new Origin("http://localhost:3000"); //provide your domain name
         String rpId = "localhost"; //provide your domain name
         Challenge challenge = new DefaultChallenge(); //get the challenge from the database against the user
         ServerProperty serverProperty = new ServerProperty(origin, rpId, challenge, null);
@@ -71,7 +74,8 @@ public class RegisterServiceImpl implements RegisterService {
         try {
             webAuthnManager.verify(registrationData, registrationParameters);
         } catch (VerificationException e) {
-            return ResponseEntity.badRequest().build();
+            log.error("Credentials verify failed - {}", e.getMessage());
+            return ResponseEntity.status(400).body("Credentials verify failed - " + e.getMessage());
         }
 
         CredentialRecord credentialRecord = new CredentialRecordImpl(
@@ -86,41 +90,5 @@ public class RegisterServiceImpl implements RegisterService {
     }
 
 
-    public ResponseEntity<?> loginVerification(RegistrationRequest registerRequest) {
-        AuthenticationData authenticationData;
 
-        try {
-            authenticationData = webAuthnManager.parseAuthenticationResponseJSON(registerRequest.toString()); //TODO: get the request as JSON string
-
-        }
-        catch (DataConversionException e) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Origin origin = new Origin("http://localhost:8080");
-        String rpId = "localhost";
-        Challenge challenge = new DefaultChallenge();
-        ServerProperty serverProperty = new ServerProperty(origin, rpId, challenge, null);
-
-        List<byte[]> allowedCredentials = null;
-        boolean userVerificationRequired = true;
-        boolean userPresenceRequired = true;
-
-        CredentialRecord credentialRecord = load(authenticationData.getCredentialId()); // Load the credential record from the database against the credential id
-        AuthenticationParameters authenticationParameters = new AuthenticationParameters(
-                serverProperty,
-                credentialRecord,
-                allowedCredentials,
-                userVerificationRequired,
-                userPresenceRequired
-        );
-
-        try {
-            webAuthnManager.verify(authenticationData, authenticationParameters);
-        }
-        catch (VerificationException e) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok("login successfully"); // Return user details for valid login
-    }
 }

@@ -9,5 +9,5 @@ public interface RegisterService {
 
     ResponseEntity<PublicKeyCredentialCreationOptions> registerStart(RegisterRequest registerRequest);
     ResponseEntity<?> registerValidate(String registerRequest);
-    ResponseEntity<?> loginVerification(RegistrationRequest registerRequest);
+
 }
