@@ -27,9 +27,9 @@ public class LoginController {
     }
 
     @PostMapping("/login-verification")
-    public ResponseEntity<Object> loginVerification(@RequestBody String registerRequest) {
+    public ResponseEntity<Object> loginVerification(@RequestBody String loginRequest) {
         try {
-            return loginService.loginVerification(registerRequest);
+            return loginService.loginVerification(loginRequest);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
